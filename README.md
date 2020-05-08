@@ -29,7 +29,7 @@ A useful feature of localcache is that if the wrapped function returns a promise
 
 ## API
 
-### localcache(function, ttl?, idresolver?)
+### localcache(function, options?)
 
 #### input
 
@@ -37,14 +37,44 @@ Type: `function`
 
 The function to wrapped.
 
-#### ttl
+#### options
+
+Type: `object`
+Default: `{ lifetime: 900, idresolve: <defaultIdresolver>, bootstrap: null }`
+
+The time in seconds the result should be cached. By default localcache hangs on to old data for 15 minutes.
+
+
+##### options.lifetime
 
 Type: `number`
 Default: `900`
 
 The time in seconds the result should be cached. By default localcache hangs on to old data for 15 minutes.
 
-#### idresolver
+
+##### options.bootstrap
+
+Type: `array | null`
+Default: `null`
+
+An array of objects containing keys: id, result.  id is the cache key which should match the argument of the cached function & result is the cached value. e.g.
+
+```js
+import cache from '@borgar/localcache';
+
+const bootstrap = [{ id: '', result: 5, { id: 'some-other-arg', result: 2} ]
+const functionToReturnCachedValue = localCache(function functionToCache (arg) { return 5 }, { bootstrap });
+
+functionToReturnCachedValue()
+// returns 5
+turnCachedValue('some-other-arg')
+// returns 2
+turnCachedValue('not-bootsrapped')
+// returns 5
+```
+
+##### options.idresolver
 
 Type: `function`
 
@@ -59,8 +89,8 @@ function loadFile (fileinfo) {
   // load a file named fileinfo.filename from fileinfo.path
 }
 
-const maybeLoadFile = localCache(loadFile, 60, fileinfo => {
+const maybeLoadFile = localCache(loadFile, { lifetime: 60, idresolver: fileinfo => {
   return fileinfo.path + '/' + fileinfo.filename;
-});
+}});
 ```
 
